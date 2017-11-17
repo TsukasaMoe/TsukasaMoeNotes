@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="字符编码," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言今天面试又遇到以前一直忽略的问题，即字符编码方式和不同数据类型在不同位数操作系统的所占的字节大小，或许是在考察我学习是否细致、认真、深入。借此机会，我在网上查找资料，用自己的适合的记忆方式对该知识点以及辐射出的知识内容的进行了一个总结，形成自己的理解。">
+<meta name="keywords" content="字符编码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="字符编码的前世今生和数据类型大小">
+<meta property="og:url" content="http://notes.tsukasa.moe/2017/04/26/character-size-and-encode-method/index.html">
+<meta property="og:site_name" content="Tsukasa&#39;s Notes">
+<meta property="og:description" content="前言今天面试又遇到以前一直忽略的问题，即字符编码方式和不同数据类型在不同位数操作系统的所占的字节大小，或许是在考察我学习是否细致、认真、深入。借此机会，我在网上查找资料，用自己的适合的记忆方式对该知识点以及辐射出的知识内容的进行了一个总结，形成自己的理解。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://github.com/solano-yume/HostGallery/raw/master/uploads/2017/04/x86-compiler.jpg">
+<meta property="og:image" content="https://github.com/solano-yume/HostGallery/raw/master/uploads/2017/04/x86-compiler-result.jpg">
+<meta property="og:image" content="https://github.com/solano-yume/HostGallery/raw/master/uploads/2017/04/x64-compiler.jpg">
+<meta property="og:image" content="https://github.com/solano-yume/HostGallery/raw/master/uploads/2017/04/x64-compiler-result.jpg">
+<meta property="og:updated_time" content="2017-11-17T08:26:36.930Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="字符编码的前世今生和数据类型大小">
+<meta name="twitter:description" content="前言今天面试又遇到以前一直忽略的问题，即字符编码方式和不同数据类型在不同位数操作系统的所占的字节大小，或许是在考察我学习是否细致、认真、深入。借此机会，我在网上查找资料，用自己的适合的记忆方式对该知识点以及辐射出的知识内容的进行了一个总结，形成自己的理解。">
+<meta name="twitter:image" content="https://github.com/solano-yume/HostGallery/raw/master/uploads/2017/04/x86-compiler.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://notes.tsukasa.moe/2017/04/26/character-size-and-encode-method/"/>
+
+
+
+
+
+  <title>字符编码的前世今生和数据类型大小 | Tsukasa's Notes</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Tsukasa's Notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">本当に萌え萌えだぜ</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://notes.tsukasa.moe/2017/04/26/character-size-and-encode-method/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Tsuaksa">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tsukasa's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">字符编码的前世今生和数据类型大小</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-04-26T23:17:43+08:00">
+                2017-04-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/编程开发/" itemprop="url" rel="index">
+                    <span itemprop="name">编程开发</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>今天面试又遇到以前一直忽略的问题，即字符编码方式和不同数据类型在不同位数操作系统的所占的字节大小，或许是在考察我学习是否细致、认真、深入。借此机会，我在网上查找资料，用自己的适合的记忆方式对该知识点以及辐射出的知识内容的进行了一个总结，形成自己的理解。</p>
+<a id="more"></a>
+<h1 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h1><h4 id="编码前奏曲"><a href="#编码前奏曲" class="headerlink" title="编码前奏曲"></a>编码前奏曲</h4><p>我相信很多人都和我遇到过相同的问题和相似的疑问，为什么Java中的字符是2个字节，而C/C++中又为什么是1个字节？为什么在不同位数的机器上面指针型为什么是固定的某个值？为什么我明明没干什么“坏事”，怎么会出现乱码呢？</p>
+<blockquote>
+<p>对于第一和第二个问题，如果只是想知道结果，动手验证即可，当然这也是学习的第一步。对于问题三，虽然也可以不求甚解的找个解决方案，但是遇到类似的情况时你就不明白从哪个角度找出问题的所在并解决它。</p>
+</blockquote>
+<h4 id="为什么需要编码？"><a href="#为什么需要编码？" class="headerlink" title="为什么需要编码？"></a>为什么需要编码？</h4><p>先给出一个官方的字符编码定义：<br>字集码是把字符集中的字符编码指定为集合中某一对象（例如：比特模式、自然数序列、8位组或者电脉冲），以便文本在计算机中存储和通过通信网络的传递。</p>
+<p>我理解的角度是，计算机用二进制数据描述信息的过程叫做编码，编码的方式决定了什么样的二进制数值表示什么字符，编码的长度（字节数的大小）则是影响存储空间大小，间接影响着传输某一信息所需要的流量。</p>
+<h4 id="编码方案发展"><a href="#编码方案发展" class="headerlink" title="编码方案发展"></a>编码方案发展</h4><p>我相信通过编码方案的发展历程，我们就能搞清楚为什么Unicode如此受欢迎，乱码问题本质是什么。</p>
+<ul>
+<li>ASCII：开始计算机只在美国使用，8位的字节一共可以组合出2<sup>8</sup>=256种不同状态，至今用了128种状态，前32种状态(编号为0——31)规定了特殊的用途，后面世界上所有计算机都用ASCII方案保存英文文字。ASCII全称为American Standard Code for Information Interchange，即美国信息交换标准代码</li>
+<li>EASCII：EASCII在ASCII上做的一个扩展，利用起后面128种状态(128——255)，EASCII码比ASCII码扩充出来的符号包括表格符号、希腊字母等，具体问搜索引擎</li>
+<li>GB2312：GB是国标的意思，这是我们国家标准总局发布的编码方案，不仅把我们的很多汉字进行了编码，还对日文的假名等和ASCII本来就有的数字、标点、字母都用2个字节进行编码，这就是输入法中所说的“全角”符号了，而127以下的ASCII编码的称为半角符号</li>
+<li>GBK：扩展GB2312后的编码方案称为GBK标准，少数民族文字的加入又扩成了GB18030，它们都是双字节字符集的</li>
+<li>Unicode：各个国家和地区使用各自的编码，对于交流来说是极其不便的，最喜欢制作标准的ISO(国际标准化组织)发明了Unicode编码，全称是Universal Multiple-Octet Coded Character Set.ISO规定必须用2个字节表示所有字符，而对于“半角”的英文字符来说，保存英文文本时多浪费了一倍的空间，因为高8位全为0. Unicode下，无论是英文字母还是汉字，它们都是“一个字符”，“字节”是一个8位的物理存贮单元，“字符”是一个文化相关的符号</li>
+<li>UTF-8等：假设Unicode统一规定，每个符号用3或4个字节表示，那么每个英文字母必有第2，3个字节为0，存储的文本比原来大2，3倍，这是难以接受的.互联网的出现，为解决Unicode如何在网络上传输无国界，诞生了UTF标准。UTF-8是每次传输8位数据，UTF-16是每次传输16位，两者编码哪个更有效率要看字符分布的范围。UTF-8是变长编码，即字符在ASCII编码范围内则用1个字节表示，unicode中文字符占2个字节，而UTF-8中文字符占3个字节。下面简单的展示UTF-8的编码</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">0xxxxxxx</span><br><span class="line">110xxxxx 10xxxxxx</span><br><span class="line">1110xxxx 10xxxxxx 10xxxxxx</span><br><span class="line">11110xxx 10xxxxxx 10xxxxxx 10xxxxxx</span><br><span class="line">111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx</span><br><span class="line">1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>UTF-8是网页，电子邮件中常用的信道编码，乱码问题其实是不同编码字符占用的字节数不一样，而计算机读取的时候如果不按照对应的规则(字节数)读取，那么读取来的就不是之前编码的字符，从而出现了乱码.</p>
+<h1 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h1><p>我一直在想，C/C++数据类型大小与什么因素有关，从CPU，OS，Compiler三方面考虑。先了解一些基本概念：</p>
+<ul>
+<li>CPU指的是处理器，不同位数（如32位，64位）的处理器我们称为不同位数的机器；</li>
+<li>OS指运行在机器上的操作系统，这里关注的是操作系统位数，64位的机器上也可以运行32位的操作系统；</li>
+<li>Compiler即编译器，即使是32位win32平台编译器中可以定义64位长整型的__int64.</li>
+</ul>
+<p>int字长规定：</p>
+<ul>
+<li>C/C++规定int字长和机器字长相同；</li>
+<li>操作系统字长和机器字长未必一致；</li>
+<li>编译器根据操作系统字长定义int字长；</li>
+</ul>
+<p>因此，对于C/C++，无操作系统的嵌入式计算机系统下，int长度与处理器字长一致；<br>有操作系统时，编译器根据操作系统的字长定义int字长。比如说64位机器上运行32位系统，编译器中的int为32位。</p>
+<h1 id="数据类型所占字节数"><a href="#数据类型所占字节数" class="headerlink" title="数据类型所占字节数"></a>数据类型所占字节数</h1><p>C/C++编译器</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">数据类型</th>
+<th style="text-align:center">32位</th>
+<th style="text-align:center">64位</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">short int</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">2</td>
+</tr>
+<tr>
+<td style="text-align:center">int</td>
+<td style="text-align:center">4</td>
+<td style="text-align:center">4</td>
+</tr>
+<tr>
+<td style="text-align:center">unsigned int</td>
+<td style="text-align:center">4</td>
+<td style="text-align:center">4</td>
+</tr>
+<tr>
+<td style="text-align:center">float</td>
+<td style="text-align:center">4</td>
+<td style="text-align:center">4</td>
+</tr>
+<tr>
+<td style="text-align:center">double</td>
+<td style="text-align:center">8</td>
+<td style="text-align:center">8</td>
+</tr>
+<tr>
+<td style="text-align:center">long</td>
+<td style="text-align:center">4</td>
+<td style="text-align:center">4</td>
+</tr>
+<tr>
+<td style="text-align:center">long long</td>
+<td style="text-align:center">8</td>
+<td style="text-align:center">8</td>
+</tr>
+<tr>
+<td style="text-align:center">unsigned long</td>
+<td style="text-align:center">4</td>
+<td style="text-align:center">4</td>
+</tr>
+<tr>
+<td style="text-align:center">指针类型变量</td>
+<td style="text-align:center">4</td>
+<td style="text-align:center">8</td>
+</tr>
+</tbody>
+</table>
+<p>动手实践一番吧，在下的环境是win10 x64位系统，处理器为64位，编译环境分别选择vs的32位和64位debug模式。先给出代码，最后给出运行结果。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"stdio.h"</span> </span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"iostream"</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> &#123;</span></span><br><span class="line">    <span class="keyword">private</span>: <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">private</span>: <span class="keyword">char</span> c;</span><br><span class="line">    <span class="keyword">public</span>: <span class="function"><span class="keyword">void</span>* <span class="title">fun</span><span class="params">()</span></span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;   </span><br><span class="line">    <span class="keyword">char</span> c1[<span class="number">10</span>];</span><br><span class="line">    <span class="keyword">char</span>* c2[<span class="number">10</span>];</span><br><span class="line">    <span class="built_in">string</span> s[<span class="number">10</span>];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(shor int):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">short</span> <span class="keyword">int</span>));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(shor int*):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">short</span> <span class="keyword">int</span>*));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(int):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">int</span>));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(int*):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">int</span>*));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(int**):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">int</span>**));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(unsigned int):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span>));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(unsigned int*):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span>*));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(long):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">long</span>));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(long*):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">long</span>*));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(long long):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">long</span> <span class="keyword">long</span>));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(long long*):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">long</span> <span class="keyword">long</span>*));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(unsigned long):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">unsigned</span> <span class="keyword">long</span>));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(unsigned long*):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">unsigned</span> <span class="keyword">long</span>*));  </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(float):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">float</span>));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(float*):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">float</span>*));  </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(double):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">double</span>));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(double*):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">double</span>*));    </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(char):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">char</span>));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(char*):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">char</span>*));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(c1):%d\n"</span>, <span class="keyword">sizeof</span>(c1));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(c2):%d\n"</span>, <span class="keyword">sizeof</span>(c2));  </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(string):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="built_in">string</span>));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(string*):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="built_in">string</span>*));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(s):%d\n"</span>, <span class="keyword">sizeof</span>(s));    </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(void*):%d\n"</span>, <span class="keyword">sizeof</span>(<span class="keyword">void</span>*));    </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"sizeof(A*):%d\n"</span>, <span class="keyword">sizeof</span>(A*));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>32位debug模式下：<br><img src="https://github.com/solano-yume/HostGallery/raw/master/uploads/2017/04/x86-compiler.jpg" alt=""><br><img src="https://github.com/solano-yume/HostGallery/raw/master/uploads/2017/04/x86-compiler-result.jpg" alt=""></p>
+<p>64位debug模式下：<br><img src="https://github.com/solano-yume/HostGallery/raw/master/uploads/2017/04/x64-compiler.jpg" alt=""><br><img src="https://github.com/solano-yume/HostGallery/raw/master/uploads/2017/04/x64-compiler-result.jpg" alt=""></p>
+<p>从中可以发现，string类型在不同的编译环境中大小发生了变化，指针型变量选择32位编译时，为32位大小（4个字节）；选择64位时为64位大小（8个字节），验证了类型大小与compiler有关的结论。</p>
+<p>Java数据类型<br>java中采用unicode编码，数据类型大小在任何平台都不改变，这就是Java具有强大的移植性能原因。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">数据类型</th>
+<th style="text-align:center">Java</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"> –</td>
+<td style="text-align:center">– </td>
+</tr>
+<tr>
+<td style="text-align:center">byte</td>
+<td style="text-align:center">1</td>
+</tr>
+<tr>
+<td style="text-align:center">boolean</td>
+<td style="text-align:center">-</td>
+</tr>
+<tr>
+<td style="text-align:center">char</td>
+<td style="text-align:center">2</td>
+</tr>
+<tr>
+<td style="text-align:center">short</td>
+<td style="text-align:center">2</td>
+</tr>
+<tr>
+<td style="text-align:center">int</td>
+<td style="text-align:center">4</td>
+</tr>
+<tr>
+<td style="text-align:center">long</td>
+<td style="text-align:center">8</td>
+</tr>
+<tr>
+<td style="text-align:center">float</td>
+<td style="text-align:center">4</td>
+</tr>
+<tr>
+<td style="text-align:center">double</td>
+<td style="text-align:center">8</td>
+</tr>
+</tbody>
+</table>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p>喜欢通过听故事的方式学习知识的朋友可以看看知乎这篇文章，讲得挺生动有趣的：<a href="https://www.zhihu.com/question/23374078" target="_blank" rel="external">Unicode和UTF-8有何区别？</a><br>维基百科词条：<a href="https://zh.wikipedia.org/wiki/%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81" target="_blank" rel="external">字符编码</a><br><a href="https://msdn.microsoft.com/zh-cn/library/cc953fe1.aspx" target="_blank" rel="external">基本类型C++</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/字符编码/" rel="tag"># 字符编码</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/17/first-time-to-use-git/" rel="next" title="Git2.11.0初尝试遇到的坑">
+                <i class="fa fa-chevron-left"></i> Git2.11.0初尝试遇到的坑
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/05/14/connect-to-oracle-in-intellij-idea-by-java/" rel="prev" title="Java在Intellij IDEA下连接Oracle数据库总结">
+                Java在Intellij IDEA下连接Oracle数据库总结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Tsuaksa</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#编码"><span class="nav-number">2.</span> <span class="nav-text">编码</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#编码前奏曲"><span class="nav-number">2.0.0.1.</span> <span class="nav-text">编码前奏曲</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#为什么需要编码？"><span class="nav-number">2.0.0.2.</span> <span class="nav-text">为什么需要编码？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#编码方案发展"><span class="nav-number">2.0.0.3.</span> <span class="nav-text">编码方案发展</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数据类型"><span class="nav-number">3.</span> <span class="nav-text">数据类型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数据类型所占字节数"><span class="nav-number">4.</span> <span class="nav-text">数据类型所占字节数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考资料"><span class="nav-number">5.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Tsuaksa</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
